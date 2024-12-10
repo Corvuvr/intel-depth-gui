@@ -74,7 +74,6 @@ class ClickWidget(QLabel):
     def mousePressEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
             self.pressPos = QPoint(event.pos())
-            #self.lastClickGlobalPos = tuple((self.pressPos.x(), self.pressPos.y()))
             self.lastClickGlobalPos = tuple((
                 QPoint(event.pos()).x(), QPoint(event.pos()).y()))
             global tmp 
@@ -130,7 +129,7 @@ class MainWindow(QMainWindow):
         self.buttonCount = 0
         self.styleSheet_buttons = self.getBtnStyle()
         # Open Button
-        self.addButton("OpenImage", self.event_openfile, layoutSidebar)
+        self.addButton("OpenImage", self.event_openfile, layoutSidebar, )
         # Run Button
         self.addButton("Camera: off", self.switchCam, layoutSidebar)
         print(self.pos())
@@ -163,11 +162,12 @@ class MainWindow(QMainWindow):
         self.newButton.clicked.connect(lambda: function_(self.newButton))
         layout_.addWidget(self.newButton)
 
-    def event_openfile(self):
-        res = QFileDialog.getOpenFileName(self, 'Открытие файла', os.getcwd(),'Images (*.png *.jpg)')
-        self.labelSearchImage.setPixmap(QPixmap(res[0]))
+    def event_openfile(self, *args):
+        res = QFileDialog.getOpenFileName(self, 'Открытие файла', os.getcwd(), options=QFileDialog.Option.DontUseNativeDialog)
+        self.labelSearchImage.setPixmap(QPixmap(res[0]).scaled(
+            self.sidebarWidth,self.sidebarWidth,Qt.AspectRatioMode.IgnoreAspectRatio))
         if len(res[0])==0:
-            self.labelSearchImage.setPixmap(QPixmap(f"{self.assetPath}/Detail_photo.png"))
+            self.labelSearchImage.setPixmap(QPixmap(f"{self.assetPath}/imagePlaceholder.jpg"))
         print(f'{"-"*33}\n{res}')
          
     def switchCam(self, btn_):
