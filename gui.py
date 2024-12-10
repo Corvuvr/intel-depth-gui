@@ -58,8 +58,8 @@ class ThreadOpenCV(QThread):
         return inputRGB_
     def getPointCoordinates(self, depth_, pointX_, pointY_, scaleFactor_):
         fovX, fovY = 65, 40
-        camAngleY = fovY * abs(1 - 2*pointY_/(self.app.videoBufferHeight*scaleFactor_[1])) / 2
-        camAngleX = fovX * abs(1 - 2*pointX_/(self.app.videoBufferWidth*scaleFactor_[0])) / 2
+        camAngleY = fovY * (1 - 2*pointY_/(self.app.videoBufferHeight*scaleFactor_[1])) / 2
+        camAngleX = fovX * (1 - 2*pointX_/(self.app.videoBufferWidth*scaleFactor_[0])) / 2
         x = math.sin(math.radians(camAngleX))*depth_ / 1000
         y = math.sin(math.radians(camAngleY))*depth_ / 1000
         z = math.cos(math.radians(camAngleY))*depth_ / 1000
