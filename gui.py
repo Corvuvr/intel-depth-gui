@@ -2,6 +2,7 @@ import sys
 import cv2
 import os
 import copy
+import math
 import numpy as np
 
 from PyQt6.QtWidgets import QApplication, QMainWindow, QLabel, QLineEdit, QVBoxLayout, QHBoxLayout, QWidget, QPushButton, QFileDialog, QSizePolicy
@@ -12,9 +13,6 @@ from camera import MonoCamera, DepthCamera
 
 cam = DepthCamera()
 global tmp
-
-def getPointCoordinates(depth_):
-    return (0, 0, 0)
 
 class ThreadOpenCV(QThread):
     signalChangePixmap = pyqtSignal(QImage)
@@ -44,14 +42,11 @@ class ThreadOpenCV(QThread):
     def stop(self):
         self.isRunning = False
         self.quit()     
-
     def drawDepth(self, inputRGB_, inputDepth_, cursorCoordinates_, scaleFactor_):
-        x, y, z = getPointCoordinates(depth_=inputDepth_)
-        #print(inputRGB_.shape)
-        # inputRGB_ = cv2.resize(inputRGB_, ())
         xCenter =  int(cursorCoordinates_[0]*scaleFactor_[0])
         yCenter =  int(cursorCoordinates_[1]*scaleFactor_[1])
-        d= inputDepth_[yCenter][xCenter]
+        d = inputDepth_[yCenter][xCenter]
+        x, y, z = self.getPointCoordinates(depth_=d, pointX_=xCenter, pointY_=yCenter, scaleFactor_=scaleFactor_)
         cv2.rectangle(
             inputRGB_, 
             (xCenter + 10, yCenter + 10), 
@@ -59,8 +54,17 @@ class ThreadOpenCV(QThread):
             (0,255,0), 
             1
         )
-        cv2.putText(inputRGB_, f'{d / 1000 }m', (xCenter + 20, yCenter + 7), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0,255,0), 2)
+        cv2.putText(inputRGB_, f'{x:.2f} {y:.2f} {z:.2f}', (xCenter + 20, yCenter + 7), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0,255,0), 2)
         return inputRGB_
+    def getPointCoordinates(self, depth_, pointX_, pointY_, scaleFactor_):
+        fovX, fovY = 65, 40
+        camAngleY = fovY * abs(1 - 2*pointY_/(self.app.videoBufferHeight*scaleFactor_[1])) / 2
+        camAngleX = fovX * abs(1 - 2*pointX_/(self.app.videoBufferWidth*scaleFactor_[0])) / 2
+        x = math.sin(math.radians(camAngleX))*depth_ / 1000
+        y = math.sin(math.radians(camAngleY))*depth_ / 1000
+        z = math.cos(math.radians(camAngleY))*depth_ / 1000
+        return (x,y,z)
+    
 class ClickWidget(QLabel):
     pressPos = None
     clicked = pyqtSignal()
