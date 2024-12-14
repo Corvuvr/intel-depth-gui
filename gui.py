@@ -60,10 +60,11 @@ class ThreadOpenCV(QThread):
         fovX, fovY = 65, 40
         camAngleY = fovY * (1 - 2*pointY_/(self.app.videoBufferHeight*scaleFactor_[1])) / 2
         camAngleX = fovX * (1 - 2*pointX_/(self.app.videoBufferWidth*scaleFactor_[0])) / 2
-        x = math.sin(math.radians(camAngleX))*depth_ / 1000
-        y = math.sin(math.radians(camAngleY))*depth_ / 1000
-        z = math.cos(math.radians(camAngleY))*depth_ / 1000
-        return (x,y,z)
+        cosV =  math.cos(math.radians(camAngleY)+math.radians(camAngleX))
+        z = cosV * depth_
+        y = math.tan(math.radians(camAngleY))*z
+        x = math.tan(math.radians(camAngleX))*z
+        return (x / 1000, y / 1000, z / 1000)
     
 class ClickWidget(QLabel):
     pressPos = None
